@@ -6,6 +6,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 
 import javax.servlet.ServletException;
@@ -30,19 +31,22 @@ public class Register_User extends HttpServlet {
 		String DB_URL =  System.getenv("DB_URL");
 		String DB_NAME = System.getenv("DB_NAME");
 		String DB_PASS = System.getenv("DB_PASS");
-		
+		Connection con = null;
+		Statement st = null;
+		ResultSet rs = null;
+		PreparedStatement ps = null;
 		try
 		{
-			Connection con = null;
+			
 			Class.forName("com.mysql.jdbc.Driver");
 			con = DriverManager.getConnection(DB_URL , DB_NAME , DB_PASS);
-			Statement st = con.createStatement();
+			st = con.createStatement();
 			
 			String user = request.getParameter("username");
 			String pass = request.getParameter("password");
 			String cpass = request.getParameter("confirmPassword");
 			String query = "select * from user_table where user_name='"+user+"'";
-			ResultSet rs = st.executeQuery(query);
+			rs = st.executeQuery(query);
 			
 			if(rs.next())
 			{
@@ -51,7 +55,7 @@ public class Register_User extends HttpServlet {
 			else if(pass.equals(cpass))
 			{
 				query = "insert into user_table (user_name,user_pass) values(?,?)";
-				PreparedStatement ps = con.prepareStatement(query);
+				ps = con.prepareStatement(query);
 				ps.setString(1, user);
 				ps.setString(2, pass);
 				
@@ -70,7 +74,19 @@ public class Register_User extends HttpServlet {
 		{
 			e.printStackTrace(pr);
 		}
-		
+		finally
+		{
+			try {
+				if (ps != null) ps.close();
+				if (rs != null) rs.close();
+				if (st != null) st.close();
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
 		
 		pr.close();
 	}

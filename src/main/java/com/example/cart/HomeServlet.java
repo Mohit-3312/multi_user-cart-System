@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -33,15 +34,17 @@ public class HomeServlet extends HttpServlet {
 		String DB_NAME = System.getenv("DB_NAME");
 		String DB_PASS = System.getenv("DB_PASS");
 		List<Product> products = new ArrayList<>();
-		
+		Connection con = null;
+		Statement st = null;
+		ResultSet rs = null;
 		try
 		{
-			Connection con = null;
+			
 			Class.forName("com.mysql.jdbc.Driver");
 			con = DriverManager.getConnection(DB_URL , DB_NAME , DB_PASS);
-			Statement st = con.createStatement();
+			st = con.createStatement();
 			String query = "select * from products";			
-			ResultSet rs = st.executeQuery(query);
+			rs = st.executeQuery(query);
 			
 			while(rs.next())
 			{
@@ -56,6 +59,19 @@ public class HomeServlet extends HttpServlet {
 		catch(Exception e)
 		{
 			e.printStackTrace(pr);
+		}
+		finally
+		{
+			try {
+				if (st != null) st.close();
+				if (rs != null) rs.close();
+				if (con != null) con.close();
+				
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		
 		

@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
@@ -35,6 +36,9 @@ public class Add_Cart extends HttpServlet {
 		String DB_NAME = System.getenv("DB_NAME");
 		String DB_PASS = System.getenv("DB_PASS");
 		HttpSession session = request.getSession();
+		Connection con = null;
+		PreparedStatement ps = null; 
+		
 		
 		if(session==null || session.getAttribute("user")==null)
 		{
@@ -44,7 +48,7 @@ public class Add_Cart extends HttpServlet {
 		{
 			try
 			{
-				Connection con = null;
+				
 				Class.forName("com.mysql.jdbc.Driver");
 				con = DriverManager.getConnection(DB_URL , DB_NAME , DB_PASS);
 				int pid = Integer.parseInt(request.getParameter("productId"));
@@ -55,7 +59,7 @@ public class Add_Cart extends HttpServlet {
 				
 				String query = "insert into cart_table(user_id, product_id) values(?,?)";
 				
-				PreparedStatement ps = con.prepareStatement(query);
+				ps = con.prepareStatement(query);
 				ps.setInt(1, uid);
 				ps.setInt(2, pid);
 				ps.executeUpdate();
@@ -66,6 +70,17 @@ public class Add_Cart extends HttpServlet {
 			catch(Exception e)
 			{
 				e.printStackTrace(pr);
+			}
+			finally
+			{
+				try {
+					if (ps != null) ps.close();
+					if (con != null) con.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 			}
 		}
 		

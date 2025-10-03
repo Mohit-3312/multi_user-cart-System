@@ -5,6 +5,7 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.List;
@@ -32,6 +33,10 @@ public class CartServlet extends HttpServlet {
 		String DB_URL =  System.getenv("DB_URL");
 		String DB_NAME = System.getenv("DB_NAME");
 		String DB_PASS = System.getenv("DB_PASS");
+		Connection con = null;
+		ResultSet rs = null;
+		
+		
 		List<CartItem> cartItems = new ArrayList<>();
 
 		
@@ -44,7 +49,7 @@ public class CartServlet extends HttpServlet {
 		{
 			try
 			{
-				Connection con = null;
+				
 				Class.forName("com.mysql.jdbc.Driver");
 				con = DriverManager.getConnection(DB_URL , DB_NAME , DB_PASS);
 				Statement st = con.createStatement();
@@ -52,7 +57,7 @@ public class CartServlet extends HttpServlet {
 			               "FROM products p JOIN cart_table c ON p.product_id = c.product_id " +
 			               "WHERE c.user_id = '" + session.getAttribute("User_Id") + "'";
 				
-				ResultSet rs = st.executeQuery(query);
+				rs = st.executeQuery(query);
 
 				while (rs.next()) {
 	                Product product = new Product(
@@ -77,6 +82,17 @@ public class CartServlet extends HttpServlet {
 			catch(Exception e)
 			{
 				e.printStackTrace(pr);
+			}
+			finally
+			{
+				try {
+					if (rs != null) rs.close();
+					if (con != null) con.close();
+				} catch (SQLException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
 			}
 		}
 		session.setAttribute("Cart_Items", cartItems);

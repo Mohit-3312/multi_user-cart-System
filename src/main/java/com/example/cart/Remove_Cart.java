@@ -5,6 +5,8 @@ import java.io.PrintWriter;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
+import java.sql.SQLException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -38,6 +40,8 @@ public class Remove_Cart extends HttpServlet {
 		String DB_URL =  System.getenv("DB_URL");
 		String DB_NAME = System.getenv("DB_NAME");
 		String DB_PASS = System.getenv("DB_PASS");
+		Connection con = null;
+		PreparedStatement ps = null;
 		
 		HttpSession session = request.getSession(false);
 		if(session == null || session.getAttribute("User_Id") == null || session.getAttribute("user") == null)
@@ -47,7 +51,7 @@ public class Remove_Cart extends HttpServlet {
 		else {
 		
 		try {
-			Connection con = null;
+			
 			Class.forName("com.mysql.jdbc.Driver");
 			con = DriverManager.getConnection(DB_URL , DB_NAME , DB_PASS);
 			
@@ -55,7 +59,7 @@ public class Remove_Cart extends HttpServlet {
 			int uid = (int) session.getAttribute("User_Id");
 			String query = "delete from cart_table where cart_id = ? AND user_id=?";
 			
-			PreparedStatement ps = con.prepareStatement(query);
+			ps = con.prepareStatement(query);
 			ps.setInt(1,cid);
 			ps.setInt(2, uid);
 			ps.executeUpdate();
@@ -67,6 +71,17 @@ public class Remove_Cart extends HttpServlet {
 		catch(Exception e)
 		{
 			e.printStackTrace(pr);
+		}
+		finally
+		{
+			try {
+				if (ps != null) ps.close();
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		
 		pr.close();

@@ -6,6 +6,8 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
@@ -28,20 +30,23 @@ public class Validate_User extends HttpServlet {
 		String DB_URL =  System.getenv("DB_URL");
 		String DB_NAME = System.getenv("DB_NAME");
 		String DB_PASS = System.getenv("DB_PASS");
+		Connection con = null;
+		PreparedStatement ps = null;
+		ResultSet rs = null;
 		
 		try
 		{
-			Connection con = null;
+			
 			Class.forName("com.mysql.jdbc.Driver");
 			con = DriverManager.getConnection(DB_URL , DB_NAME , DB_PASS);
 			
 			String user = request.getParameter("username");
 			String pass = request.getParameter("password");
 			String query = "select * from user_table where user_name=? AND user_pass=?";
-			PreparedStatement ps = con.prepareStatement(query);
+			ps = con.prepareStatement(query);
 			ps.setString(1, user);
 			ps.setString(2, pass);
-			ResultSet rs= ps.executeQuery();
+			rs= ps.executeQuery();
 			
 			if(rs.next())
 			{
@@ -60,6 +65,18 @@ public class Validate_User extends HttpServlet {
 		catch(Exception e)
 		{
 			e.printStackTrace(pr);
+		}
+		finally
+		{
+			try {
+				if (ps != null) ps.close();
+				if (rs != null) rs.close();
+				if (con != null) con.close();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
 		}
 		
 		pr.close();
